@@ -173,13 +173,28 @@ void free_grid(cell** grid,int r, int c){
   /*  for(int j = 0; j < c; j++)
       free(grid[i][j]); //not sure if we need this
   */
-    free(grid[i]);
+   free(grid[i]);
   }
   free(grid)
 }
 
 //Need to update cell struct and be wary of convention with xcoor/ycoor
 
+int len_linked_cells(linked_cells* root){
+  if (root == NULL)
+    return 0;
+  else
+    return 1 + len_linked_cells(root->next);
+}
+
+char* linkedToString(linked_cells* root){
+  if (root == NULL)
+    printf("end of list\n");
+  else {
+    printf("(%d,%d) : %d\n",root->xcoor,root->ycoor,root->val);
+    linkedToString(root->next);
+  }
+}
 
 int main(int argc, char** argv){
     char* seq1 = "GATTACA";
@@ -191,21 +206,23 @@ int main(int argc, char** argv){
     return 0;
 } 
 
-// Need to write len_linked_cells
-// Need to write linked_cells_invert
-// Might want print_linked_cells
-// Need to write to file from traceback
-// Need to look at passing around lengths
-// Decide on input and output format
+/* Need to write len_linked_cells          --done
+   Need to write linked_cells_invert       --done
+   Might want print_linked_cells           --done
+   Need to write to file from traceback    --done
+   Need to look at passing around lengths  --
+   Decide on input and output format       --
 
 
+   Right now we're checking the length of the sequences
+      - This might need to be made into a global variable
+      - a lot of functions need it and future ones might too
 
-// Right now we're checking the length of the sequences
+   *DONE* Write the traceback function
 
-// Write the traceback function
+   *DONE NEEDS TESTING* Output the aligned sequences
 
-// Output the aligned sequences
+   Userfriendly Question, who is this code for?
 
-// Userfriendly
-
-// More nuanced scoring 
+   More nuanced scoring 
+*/
