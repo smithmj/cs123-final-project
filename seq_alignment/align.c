@@ -117,6 +117,51 @@ linked_cells* traceback(cell** grid, int r, int c){
   return rv;
 }
 
+linked_cells* reverse(linked_cells* root){
+  linked_cells* temp;
+  linked_cells* previous = NULL;
+  while(root != NULL) {
+    temp = root->next;
+    root->next = previous;
+    previous = root;
+    root = temp;
+  }
+  return previous;
+}
+
+void printSeqToFile(FILE* f,linked_cell* path,char* seq1,char* seq2){
+  filename = fopen("/output/seqs.txt","w+"); 
+  // this will need to be changed for multiple files (dynamic assignment)
+
+  linked_cell* temp = path;
+  linked_cell* prev = NULL; //this may need to be initialized to something else
+  // the idea is we store the previous value to see whether we moved diagonally
+  // if we did not move along the proper sequence insert a dash
+  
+  while(temp != NULL){
+    if(temp.x == prev.x)
+      fputc('-',f);
+    else
+      fputc(seq1[x],f);
+    prev = temp;
+    temp = temp->next;
+  } // this prints out seq 1 as aligned
+
+  fputc('\n',f); //this might need to be fprintf - not sure if \n is a char
+  temp = path;
+  prev = NULL;
+  while(temp != NULL){
+    if(temp.y == prev.y)
+      fputc('-',f);
+    else
+      fputc(seq2[y],f);
+    prev = temp;
+    temp = temp->next;
+  } // this prints out seq 2 as aligned
+  return;
+}
+
+
 void free_linked_cell(linked_cell* tbd){
   if (tbd->next != NULL)
     free_linked_cell(tbd->next);
