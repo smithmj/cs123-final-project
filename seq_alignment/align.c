@@ -15,20 +15,32 @@ typedef struct cell{
 } cell;
 
 typedef struct linked_cells{
-  cell val;
   int xcoor;
   int ycoor;
   struct linked_cells* next;
 } linked_cells;
 
+void print_cell(cell* cell){
+  printf("xcoor:%d \t ycoor:%d \t val:%d\n",
+          cell->xcoor,cell->ycoor,cell->val);
+}
+
+void linkedToString(linked_cells* root){
+  if (root == NULL)
+    printf("end of list\n");
+  else {
+    printf("(%d,%d)\n",root->xcoor,root->ycoor);
+    linkedToString(root->next);
+  }
+}
 
 cell** create_grid(char* seq1, char* seq2){
     int len1 = strlen(seq1);
     int len2 = strlen(seq2);
-    cell** grid = malloc((len1 + 1) * (sizeof(cell*)));
+    cell** grid = (cell**)malloc((len1 + 1) * (sizeof(cell*)));
     int i,j;
     for (i = 0; i < (len1 + 1); i++){
-        grid[i] = malloc((len2 + 1) * (sizeof(cell)));
+        grid[i] = (cell*)malloc((len2 + 1) * (sizeof(cell)));
     }
 
     int r = len1 + 1;
@@ -55,7 +67,7 @@ cell** create_grid(char* seq1, char* seq2){
                     diagonal = MISMATCH;
                 }
                 int max = diagonal + grid[i-1][j-1].val;
-                grid[i][j].prev = &(grid[i][j]);
+                grid[i][j].prev = &(grid[i-1][j-1]);
                 if (GAP + grid[i-1][j].val > max){
                     max = GAP + grid[i-1][j].val;
                     grid[i][j].prev = &(grid[i-1][j]);
@@ -83,10 +95,6 @@ void print_grid(cell** grid, int r, int c){
     }
 }
 
-void print_cell(cell* cell){
-  printf("xcoor:%d \t ycoor:%d \t val:%d\n",
-          cell->xcoor,cell->ycoor,cell->val);
-}
 
 // Write function to free our cells
 
@@ -94,40 +102,28 @@ linked_cells* traceback(cell** grid, int r, int c){
   /* r is the number of rows in the grid
      (not necessarily the number of nucleotides
      in the sequence) and similarly for c */
-  printf("Starting traceback\n");
-  int x = c;
-  //printf("x is initialized\n");
-  int y = r;
-  //printf("y is initialized\n");
+  int x = c - 1;
+  int y = r - 1;
   int step = 0;
-  //printf("step is initialized\n");
   
-  //printf("A\n");
-  linked_cells* rv = malloc(sizeof(linked_cells));
+  linked_cells* rv = (linked_cells*)malloc(sizeof(linked_cells));
   //printf("B\n");
   linked_cells* curr;
   //printf("C\n");
   curr = rv;
-  //printf("D\n");
 
   while (x != 0 && y != 0){ //terminating condition is we reached the top
-    printf("while loop starts\n");
-    //first print out (to file?) location
-    //print_cell(&(grid[y][x]));
-    printf("E\n");
-    printf("Row: %d, Col: %d, Val: Step:%d\n", y, x, /*grid[y][x].val ,*/ step);
     
     //fill return value
     curr->xcoor = x;
     curr->ycoor = y;
-    curr->val=grid[y][x];
     step++;
 
     //update parameters
     cell* temp = grid[y][x].prev;
     x = temp->xcoor;
     y = temp->ycoor;
-    curr = curr->next = malloc(sizeof(linked_cells));
+    curr = curr->next = (linked_cells*)malloc(sizeof(linked_cells));
   }
   return rv;
 }
@@ -145,35 +141,32 @@ linked_cells* reverse(linked_cells* root){
 }
 
 void printSeqToFile(FILE* f, linked_cells* path, char* seq1, char* seq2){
-  //f = fopen("/output/seqs.txt", "w+"); 
-  // this will need to be changed for multiple files (dynamic assignment)
+    linked_cells* root = path;
+    linked_cells* temp = root->next;
 
-  linked_cells* temp = path;
-  linked_cells* prev = NULL; //this may need to be initialized to something else
-  // the idea is we store the previous value to see whether we moved diagonally
-  // if we did not move along the proper sequence insert a dash
-  
-  while(temp != NULL){
-    if(temp->xcoor == prev->xcoor)
-      fputc('-',f);
-    else
-      fputc(seq1[temp->xcoor],f);
-    prev = temp;
-    temp = temp->next;
-  } // this prints out seq 1 as aligned
+    while(temp != NULL){
+        if(root->xcoor == temp->xcoor){
+            fputc('-', f);
+        } else {
+            fputc(seq2[(temp->xcoor) - 1], f);
+        }
+        root = temp;
+        temp = root->next;
+    } // this prints out seq 1 as aligned
 
-  fputc('\n',f); //this might need to be fprintf - not sure if \n is a char
-  temp = path;
-  prev = NULL;
-  while(temp != NULL){
-    if(temp->ycoor == prev->ycoor)
-      fputc('-',f);
-    else
-      fputc(seq2[temp->ycoor],f);
-    prev = temp;
-    temp = temp->next;
-  } // this prints out seq 2 as aligned
-  return;
+    fputc('\n',f); //this might need to be fprintf - not sure if \n is a char
+    root = path;
+    temp = root->next;
+    while(temp != NULL){
+        if(root->ycoor == temp->ycoor){
+            fputc('-',f);
+        } else {
+            fputc(seq1[(temp->ycoor) - 1],f);
+        }
+        root = temp;
+        temp = root->next;
+    } // this prints out seq 2 as aligned
+    return;
 }
 
 
@@ -203,30 +196,20 @@ int len_linked_cells(linked_cells* root){
     return 1 + len_linked_cells(root->next);
 }
 
-void linkedToString(linked_cells* root){
-  if (root == NULL)
-    printf("end of list\n");
-  else {
-    printf("(%d,%d) : %d\n",root->xcoor,root->ycoor,root->val.val);
-    linkedToString(root->next);
-  }
-}
 
 int main(int argc, char** argv){
     char* seq1 = "GATTACA";
     char* seq2 = "GCATGCU";
     cell** grid = create_grid(seq1, seq2);
     print_grid(grid, 8, 8);
-    printf("does this work?\n");
     linked_cells* l1 = traceback(grid, 8, 8);
-    printf("Passed traceback\n");
     linked_cells* l1_r = reverse(l1);
-    printf("passed reverse\n");
-    FILE* f = fopen("/output/seqs.txt", "w+");
+    linkedToString(l1_r);
+    FILE* f = fopen("output/seqs.txt", "w+");
     printSeqToFile(f,l1_r,seq1,seq2);
     fclose(f);
     free_grid(grid, 8, 8);
-    free_linked_cells(l1);
+    //free_linked_cells(l1); this is a redundant free statement
     free_linked_cells(l1_r);
     return 0;
 } 
