@@ -33,8 +33,8 @@ void linkedToString(linked_cells* root){
     linkedToString(root->next);
   }
 }
-
-cell** create_grid(char* seq1, char* seq2){
+/*
+cell** dyn_grid_gen(char* seq1, char* seq2){
     int len1 = strlen(seq1);
     int len2 = strlen(seq2);
     cell** grid = (cell**)malloc((len1 + 1) * (sizeof(cell*)));
@@ -46,42 +46,65 @@ cell** create_grid(char* seq1, char* seq2){
     int r = len1 + 1;
     int c = len2 + 1;
 
-    for (i = 0; i < r; i++){        
-        grid[i][0].val = GAP * i;
-        if (i != 0){
-            grid[i][0].prev = &(grid[i-1][0]);
-        } 
-        for (j = 1; j < c; j++){
-            if (i == 0){
-                grid[i][j].val = GAP * j;
-                if (j != 0){
-                    grid[i][j].prev = &(grid[i][j-1]);
-                }
-            } else {
-                char nucl1 = seq1[i-1];
-                char nucl2 = seq2[j-1];
-                int diagonal;
-                if (nucl1 == nucl2){
-                    diagonal = MATCH;
+}
+*/
+
+
+cell** create_grid(char* seq1, char* seq2, bool dynamic){
+    // lets say we add a boolean 'dynamic' that determines the gap/mismatch behavior
+    // how do we implement efficiently?
+    int len1 = strlen(seq1);
+    int len2 = strlen(seq2);
+    cell** grid = (cell**)malloc((len1 + 1) * (sizeof(cell*)));
+    int i,j;
+    for (i = 0; i < (len1 + 1); i++){
+        grid[i] = (cell*)malloc((len2 + 1) * (sizeof(cell)));
+    }
+
+    int r = len1 + 1;
+    int c = len2 + 1;
+
+    if (dynamic){
+
+    } else { 
+
+        for (i = 0; i < r; i++){    
+            grid[i][0].val = GAP * i;
+            if (i != 0){
+                grid[i][0].prev = &(grid[i-1][0]);
+            } 
+            for (j = 1; j < c; j++){
+                if (i == 0){
+                    grid[i][j].val = GAP * j;
+                    if (j != 0){
+                        grid[i][j].prev = &(grid[i][j-1]);
+                        }
                 } else {
-                    diagonal = MISMATCH;
+                    char nucl1 = seq1[i-1];
+                    char nucl2 = seq2[j-1];
+                    int diagonal;
+                    if (nucl1 == nucl2){
+                        diagonal = MATCH;
+                    } else {
+                        diagonal = MISMATCH;
+                    }
+                    int max = diagonal + grid[i-1][j-1].val;
+                    grid[i][j].prev = &(grid[i-1][j-1]);
+                    if (GAP + grid[i-1][j].val > max){
+                        max = GAP + grid[i-1][j].val;
+                        grid[i][j].prev = &(grid[i-1][j]);
+                    }
+                    if (GAP + grid[i][j-1].val > max){
+                        max = GAP + grid[i][j-1].val;
+                        grid[i][j].prev = &(grid[i][j-1]);
+                    }
+                    grid[i][j].val = max;
+                    grid[i][j].xcoor = j;
+                    grid[i][j].ycoor = i;
                 }
-                int max = diagonal + grid[i-1][j-1].val;
-                grid[i][j].prev = &(grid[i-1][j-1]);
-                if (GAP + grid[i-1][j].val > max){
-                    max = GAP + grid[i-1][j].val;
-                    grid[i][j].prev = &(grid[i-1][j]);
-                }
-                if (GAP + grid[i][j-1].val > max){
-                    max = GAP + grid[i][j-1].val;
-                    grid[i][j].prev = &(grid[i][j-1]);
-                }
-                grid[i][j].val = max;
-                grid[i][j].xcoor = j;
-                grid[i][j].ycoor = i;
             }
         }
-    }
+    }  
     return grid;
 }
 
