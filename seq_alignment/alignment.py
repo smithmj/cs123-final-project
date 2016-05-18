@@ -1,5 +1,5 @@
 import numpy as np
-
+import operator as op
 MATCH = 2
 MISMATCH = -1
 GAP = -1
@@ -113,5 +113,14 @@ def traceback(grid, local = False):
         curr = curr.prev
 
     return rv
+
+def genotype(ref_dic)
+    rv =[]
+    for i in range(len(ref_dic))
+        rv[i] = max(ref_dic[i].iteritems(),key=op.itemgetter(1))[0]
+    return rv
+
+
+
 
 
