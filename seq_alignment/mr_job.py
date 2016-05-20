@@ -3,9 +3,10 @@ import alignment
 
 ## How do we handle the reference sequence?????
 ## Can we pass a file into MRJob somehow?
-##REF_SEQ = ...
+# REF_SEQ = ...
 
 class MRJobAlignment(MRJob):
+
 
     def mapper(self, _, line):
         read = line.strip()
@@ -34,7 +35,6 @@ class MRJobAlignment(MRJob):
             ## SNP object?? Wachs said that the key-value pairs had
             ## to be 'simple' outputs, like strings or numbers...
             yield ref_seq_pos, _____
-
 
     def steps(self):
         return [
