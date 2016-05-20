@@ -225,11 +225,8 @@ def genotype(align_dict, ref_seq):
     return snps
 
 
-# THINGS WE NEED TO DO
 
-# Be able to collapse/expand grid to/from a single list
-# Handle gaps/deletions
-# 
+
 
 
 

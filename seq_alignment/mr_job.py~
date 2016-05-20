@@ -46,5 +46,4 @@ class MRJobAlignment(MRJob):
 
 # THINGS WE NEED TO DO
 
-# pre-pair 24 copies of Short reads with each chromosome
-# adapt for single job that filters out based on copy of short read
+# pre-pair 24 copies of Short reads with each chromosomes
