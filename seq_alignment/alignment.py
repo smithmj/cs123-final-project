@@ -125,7 +125,7 @@ def find_start_cell(grid):
     return start_cell
 
 
-def traceback(grid, align_dict, ref_seq, read, local = False):
+def traceback(grid, ref_seq, read, local = False, mr = True, align_dict = None):
     if local:
         start = find_start_cell(grid[-1:,]) #we need to go over this again to make sure
     else:
@@ -137,7 +137,7 @@ def traceback(grid, align_dict, ref_seq, read, local = False):
     # it is incorrect to call this function with local = True when place_read had
     # local = False
         ref_seq_pos = curr.col - 1
-        if ref_seq_pos not in align_dict:
+        if align_dict != None and ref_seq_pos not in align_dict:
             align_dict[ref_seq_pos] = {}
         prev_cell = curr.prev
         if curr.col == prev_cell.col:
@@ -150,27 +150,42 @@ def traceback(grid, align_dict, ref_seq, read, local = False):
                 curr = curr.prev
                 prev_cell = curr.prev
             insertion = read[curr.row - 1] + insertion
-            if insertion not in align_dict[ref_seq_pos]:
+            if align_dict != None and (insertion not in align_dict[ref_seq_pos]):
                 align_dict[ref_seq_pos][insertion] = 0
-            align_dict[ref_seq_pos][insertion] += 1
+            if mr:
+                yield ref_seq_pos, insertion
+            if align_dict != None:
+                align_dict[ref_seq_pos][insertion] += 1
+            
             curr = curr.prev
 
         elif curr.row == prev_cell.row:
             # in this case there is a gap in the read
             nucl = '-'
-            if nucl not in align_dict[ref_seq_pos]:
+            if align_dict != None and (nucl not in align_dict[ref_seq_pos]):
                 align_dict[ref_seq_pos][nucl] = 0
-            align_dict[ref_seq_pos][nucl] += 1
+            if mr:
+                yield ref_seq_pos, nucl
+            if align_dict != None:
+                align_dict[ref_seq_pos][nucl] += 1
+            
             curr = prev_cell 
         else:
             # in this case there are no gaps
             nucl = read[curr.row - 1]
-            if nucl not in align_dict[ref_seq_pos]:
+            if not mr and (nucl not in align_dict[ref_seq_pos]):
                 align_dict[ref_seq_pos][nucl] = 0
-            align_dict[ref_seq_pos][nucl] += 1
+            if mr:
+                yield ref_seq_pos, nucl
+            if align_dict != None:
+                align_dict[ref_seq_pos][nucl] += 1
+             
             curr = prev_cell
 
-    return align_dict
+    if mr:
+        return
+    if align_dict != None:
+        return align_dict
 
 def genotype(align_dict, ref_seq):
     #rv =[]
@@ -190,8 +205,8 @@ def genotype(align_dict, ref_seq):
             # The coverage identifies how many reads were aligned
             # at this position. If the coverage is too low, the
             # alignment may not be reliable.
-            coverage += align_dict[ref_pos][allele]
-            
+            coverage += align_dict[ref_pos][allele]    
+
             if align_dict[ref_pos][allele] >= max_val:
                 max_val = align_dict[ref_pos][allele]
                 most_probable = allele
@@ -200,6 +215,10 @@ def genotype(align_dict, ref_seq):
         # If prob is low, the alignment may not be reliable
         prob = align_dict[ref_pos][most_probable] / coverage
         ref_allele = ref_seq[ref_pos]
+
+        if most_probable == '-':
+
+
         if most_probable != ref_allele:
             snp = SNP(ref_allele, allele, ref_pos, coverage, prob)
             snps.append(snp)
