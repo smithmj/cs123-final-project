@@ -7,17 +7,11 @@ GAP = -1
 class Cell:
     # This class is for use in our grid of sequence alignment, 
     # each piece of information is later utilized in other functions
-    def __init__(self):
-        self.val = 0
-        self.row = None 
-        self.col = None
-        self.prev = None
-
-    def __str__(self):
-        return(str(self.val))
-
-    def __repr__(self):
-        return(str(self.val))
+    def __init__(self, val = 0, row = None, col = None, prev = None):
+        self.val = val
+        self.row = row
+        self.col = col
+        self.prev = prev
 
     def __lt__(self, other):
         return self.val < other.val
@@ -27,6 +21,17 @@ class Cell:
             return False
         return self.val == other.val
     # These are used for the purpose of sorting in max functions
+
+    def __str__(self):
+        string = "val:{}\ncoor:{}\n".format(self.val, (self.row,self.col))
+        if self.prev != None:
+            string += "prev:{}".format(self.prev)
+        else:
+            string += "prev:{}".format(None)
+        return string 
+
+    def __repr__(self):
+        return self.__str__()
 
 class SNP:
 
@@ -217,7 +222,7 @@ def genotype(align_dict, ref_seq):
         ref_allele = ref_seq[ref_pos]
 
         if most_probable == '-':
-
+            pass
 
         if most_probable != ref_allele:
             snp = SNP(ref_allele, allele, ref_pos, coverage, prob)
