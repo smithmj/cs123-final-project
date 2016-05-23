@@ -1,0 +1,4 @@
+Ref Position,Ref Allele,Var Allele,Read Coverage,Proportion
+chr3:2,T,G,1,1.0
+chr1:0,C,A,1,1.0
+chr2:1,G,C,1,1.0

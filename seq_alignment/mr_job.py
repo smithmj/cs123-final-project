@@ -1,9 +1,9 @@
 from mrjob.job import MRJob
+import os
 import alignment
 import file_io
 
-class MRJobAlignment(MRJob):
-
+class MRAlignment(MRJob):
 
     def mapper(self, _, line):
         read_num_index = 0
@@ -13,14 +13,21 @@ class MRJobAlignment(MRJob):
         pair = line.split(',')
         read_num = pair[read_num_index].strip()
         chrom = pair[chrom_index].strip()
+        #print("chrom:", chrom)
         read = pair[read_index].strip()
 
-        ref_seq_file = "chrom_{}.txt".format(chrom)
+        # right now this only works on my laptop. MRJob is working in 
+        # a temporary directory and we need to figure out how to get
+        # the relative or absolute path to the chromosome file
+        ref_seq_file = "/home/student/cs123-final-project/seq_alignment/chrom_{}.txt".format(chrom)
+        #ref_seq_path = os.path.abspath(ref_seq_file)
         ref_seq = file_io.convert_seq_file_to_str(ref_seq_file)
 
-        grid = aligment.place_read(ref_seq, read, local = True)
-        #alignment.traceback(grid, REF_SEQ, read, local = True, mr = True, align_dict = None)
-        alignment_str = convert_grid_to_string(chrom, grid)
+        grid = alignment.place_read(ref_seq, read, local = True)
+        #score = alignment.find_alignment_score(grid)
+        #print("score:", score)
+        #print(grid)
+        alignment_str = file_io.convert_grid_to_str(chrom, grid)
         yield read_num, alignment_str
 
     def combiner(self, read_num, grid_strs):
@@ -34,7 +41,10 @@ class MRJobAlignment(MRJob):
                 best_grid_str = string
         yield read_num, best_grid_str
 
-    def reducer(self, ref_seq_pos, nucls):
+    def reducer_init(self):
+        self.align_dict = {}
+
+    def reducer(self, read_num, grid_strs):
         max_score = -float("inf")
         best_grid = None
         best_chrom = None
@@ -45,17 +55,17 @@ class MRJobAlignment(MRJob):
                 max_score = score
                 best_grid = grid
                 best_chrom = chrom
-        # call traceback and genotyping
-        # yeild SNPs
+        #print("read {} is aligned to chromosome {}".format(read_num, best_chrom))
+        #print("align_dict:", self.align_dict)
+        #print("best_grid:", best_grid)
+        self.align_dict = alignment.traceback(best_grid, self.align_dict, local = True, chrom = best_chrom)
+        
+    def reducer_final(self):
+        # again, right now this will only work for my laptop 
+        alignment.genotype(self.align_dict, save_file = "/home/student/cs123-final-project/seq_alignment/snp.txt")
 
-    def steps(self):
-        return [
-            MRStep(mapper_pre_filter = "sed -n '2~4p'",
-                   mapper = self.mapper,
-                   combiner = self.combiner,
-                   reducer = self.reducer
-                ]
-
+if __name__ == "__main__":
+    MRAlignment.run()
 # THINGS WE NEED TO DO
 
 # pre-pair 24 copies of Short reads with each chromosome
