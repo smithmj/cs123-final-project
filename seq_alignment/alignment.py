@@ -212,6 +212,7 @@ def genotype(align_dict, save_file = None):
         f.write("Ref Position,Ref Allele,Var Allele,Read Coverage,Proportion\n")
     else:
         snps = []
+
     for (ref_allele, ref_pos) in align_dict:
         max_val = 0
         most_probable = None
@@ -234,14 +235,20 @@ def genotype(align_dict, save_file = None):
         prob = align_dict[(ref_allele, ref_pos)][most_probable] / coverage
 
         if most_probable == '-':
-            pass
+            snp = SNP(ref_allele, allele, ref_pos, coverage, prob)
+            gap_alleles.append(snp)
 
-        if most_probable != ref_allele:
+        elif most_probable != ref_allele:
             snp = SNP(ref_allele, allele, ref_pos, coverage, prob)
             if save_file != None:
                 f.write(str(snp))
             else:
                 snps.append(snp)
+
+    # write a gap-handling function that takes in gap_alleles, a list of snps
+    # and combines the snps based on the reference position.
+    # ie: chr1:2, chr1:3, chr1:4 -> chr1:2-4
+
     if save_file != None:
         f.close()
         return
