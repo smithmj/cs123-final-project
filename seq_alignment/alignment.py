@@ -60,6 +60,14 @@ class SNP:
         return string
         #return('{} -> {}'.format(self.ref_allele, self.var_allele))
 
+    def __lt__(self, other):
+        if (self.ref_pos[0] > other.ref_pos[0]) #chrom check
+            return False
+        else if (self.ref_pos[0] == other.ref_pos[0])
+            return self.ref_pos[1] < other.ref_pos[1] #chrom_pos check if equal
+        else
+            return True
+
     def __repr__(self):
         return self.__str__()
 
@@ -159,7 +167,7 @@ def traceback(grid, align_dict, local = False, chrom = None):
     # local = False
         ref_seq_pos = curr.col - 1
         if chrom != None:
-            ref_seq_pos = "chr{}:{}".format(chrom, ref_seq_pos)
+            ref_seq_pos = "chr{}:{}".format(chrom, ref_seq_pos)#changing this to a tuple effects what?
         ref_seq_allele = curr.ref_allele
         if (ref_seq_allele, ref_seq_pos) not in align_dict:
             align_dict[(ref_seq_allele, ref_seq_pos)] = {}
@@ -212,7 +220,7 @@ def genotype(align_dict, save_file = None):
         f.write("Ref Position,Ref Allele,Var Allele,Read Coverage,Proportion\n")
     else:
         snps = []
-
+	gap_snps = []
     for (ref_allele, ref_pos) in align_dict:
         max_val = 0
         most_probable = None
@@ -236,7 +244,7 @@ def genotype(align_dict, save_file = None):
 
         if most_probable == '-':
             snp = SNP(ref_allele, allele, ref_pos, coverage, prob)
-            gap_alleles.append(snp)
+            gap_snps.append(snp)
 
         elif most_probable != ref_allele:
             snp = SNP(ref_allele, allele, ref_pos, coverage, prob)
@@ -255,6 +263,24 @@ def genotype(align_dict, save_file = None):
     else:
         return snps
 
+def gap_handler(gaps):
+    gaps.sort()    
+    glen = len(gaps)
+    i = 0
+    rv = []
+    while(i < glen - 1):
+        start = i
+        while (gaps[i].ref_pos[0] == gaps[i+1].ref_pos[0] and gaps[i].ref_pos[1] == (gaps[i+1].ref_pos[1] - 1)): #on same chrom and adjacent
+            i+=1
+        if (i == start):
+            rv.append(i)
+        else:
+            rv.append((start,i))
+        i+=1
+    if (i = glen - 1):
+        #this checks if the last one was a singleton
+        rv.append(i)
+    return rv
 
 # THINGS WE NEED TO DO
 
